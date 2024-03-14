@@ -1,15 +1,16 @@
 const express = require('express');
 const GeotabApi = require('mg-api-js');
 // const authenticate = require('./authenticate')
+require('dotenv').config()
 const app = express();
 
 const authentication = {
     credentials: {
-        database: '',
-        userName: '',
-        password: ''
+        database: process.env.CRED_DATA_DATABASE,
+        userName: process.env.CRED_DATA_USERNAME,
+        password: process.env.CRED_DATA_password
     },
-    path: ''
+    path: process.env.CRED_DATA_SERVER
 };
 
 
@@ -45,13 +46,14 @@ app.get('/test', async (req, res) => {
 // Vin: 3HAEUMML5ML812730
 //Serial Number: G9DE210C699E 
 // 3HSDZAPR0PN464738
-app.get('/test2', async (req,res)=>{
+app.get('/test2/:vin', async (req,res)=>{
+    const VIN = req.params.vin;
     try{
         const device = await api.call("Get", {
             "typeName": "Device",
             "resultsLimit": 1, 
             "search": {
-                "vehicleIdentificationNumber": "3HSDZAPR0PN464738"  
+                "vehicleIdentificationNumber": VIN  
             },
             // "propertySelector": {
             //     "fields": ["id", "name"]  
@@ -70,7 +72,8 @@ app.get('/test3', async (req,res)=>{
             "typeName": "Device",
             "resultsLimit": 1, 
             "search": {
-                "vehicleIdentificationNumber": "3HSDZAPR0PN464738"  
+                // "vehicleIdentificationNumber": "3HSDZAPR0PN464738"  
+            "id": "b1DB88"
             },
             // "propertySelector": {
             //     "fields": ["id", "name"]  
@@ -82,14 +85,25 @@ app.get('/test3', async (req,res)=>{
         res.status(500).json({ error: 'Server Err' })
     }
 })
-app.get('/test3', async (req, res) => {
+
+//b1952D
+//Note: Log record gets the datetime for the vehicle by the id.
+app.get('/test4', async (req, res) => {
     try {
-        const deviceId = "bD25D"; // Replace with the ID of the device you're querying
+        // const deviceId = "bD25D"; 
         const request = {
-            "typeName": "RequestLocation",
+            "typeName": "LookupDevice",
             "resultsLimit": 1, 
             "search": {
-                "id": deviceId  
+                // "id": deviceId 
+                //b19B11 ass 3HSDZTZR2PN105383
+                //b21497 : associated with 7GZ37TC71MN007764
+                //b1DB88 : associated with 3HAEUMML6RL770737
+                 "deviceSearch" : {
+                    // "id": "b19B11"
+                    "serialNumber": "G9URRM7063DX" 
+                } 
+
             }
         };
         const device = await api.call("Get", request);
@@ -102,31 +116,34 @@ app.get('/test3', async (req, res) => {
 
 
 
-//3AKJHLDVXPSNS9899
-// app.get('/device', async (req, res) => {
-//     try {
-//         let fromVersion = null;
-//         api.call("GetFeed", {
-//             "typeName": "StatusData",
-//             "resultsLimit": 1,
-//             "fromVersion": fromVersion,
-//             "search": {
-//                 "vehicleIdentificationNumber": "3HAEUMML5ML812730"  
-//             }
-//         }, result => {
-//             fromVersion = result.toVersion;
-//             res.json(result.data);
-//         }, error => {
-//             console.error('Error:', error);
-//             res.status(500).json({ error: 'Server Error' });
-//         });
-//     } catch (error) {
-//         console.error('Err', error);
-//         res.status(500).json({ error: 'Server Err' });
-//     }
-// });
+// 3AKJHLDVXPSNS9899
+app.get('/device', async (req, res) => {
+    try {
+        let fromVersion = null;
+        api.call("Get", {
+            "typeName": "LogRecord",
+            "resultsLimit": 1,
+            // "fromVersion": fromVersion,
+            "search": {
+                "vehicleIdentificationNumber": "3AKJGED60FDGL6005"  
+                // "deviceSearch" : {
+                //     "id": "b1DB88"
+                // }
+            }
+        }, result => {
+            fromVersion = result.toVersion;
+            res.json(result.data);
+        }, error => {
+            console.error('Error:', error);
+            res.status(500).json({ error: 'Server Error' });
+        });
+    } catch (error) {
+        console.error('Err', error);
+        res.status(500).json({ error: 'Server Err' });
+    }
+});
 
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 8080;
 app.listen(PORT, () => {
     console.log(`Server listening on port ${PORT}`);
 });
