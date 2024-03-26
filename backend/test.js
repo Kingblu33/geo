@@ -80,6 +80,25 @@ app.get('/test3', async (req,res)=>{
     }
 })
 
+app.get('/getStatus', async (req,res)=>{
+    
+    try{
+        const device = await api.call("Get", {
+            "typeName": "StatusData",
+            "resultLimit": 1,
+            // "serach": {
+            //     "deviceSearch":{
+            //         "serialNumber": "G9902108E954"
+            // }
+            "Device": "G9902108E954"
+        });
+        res.json(device)
+    }catch(error){
+        console.error('Err',error);
+        res.status(500).json({ error: 'Server Err' })
+    }
+})
+
 // b1952D
 // Note: Log record gets the datetime for the vehicle by the id.
 app.get('/test4/:serialNo', async (req, res) => {
